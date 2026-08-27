@@ -68,6 +68,14 @@ python scripts/run_feature_table.py --as-of-date 2018-08-31 -v
 
 Saída versionada em `data/features/v1.0.0/as_of_date=2018-08-31/`.
 
+### Experimento MLflow (Aula 3)
+
+```bash
+python scripts/run_training_experiment.py --as-of-date 2018-08-31 --write-docs-report -v
+```
+
+Tracking local em `mlruns/`. UI opcional: `docker compose up -d mlflow` (http://localhost:5000).
+
 ### Airflow (opcional)
 
 ```bash
@@ -124,6 +132,15 @@ Detalhes em [`configs/cadences.yaml`](configs/cadences.yaml) e [`docs/aula-01/ca
 | DAG | [airflow/dags/customer_feature_table_dag.py](airflow/dags/customer_feature_table_dag.py) |
 | Contrato features | [contracts/output/customer_features.yaml](contracts/output/customer_features.yaml) |
 
+### Aula 3
+
+| Documento | Arquivo |
+|---|---|
+| Experimentação e MLflow | [docs/aula-03/README.md](docs/aula-03/README.md) |
+| Critérios de aceite | [docs/aula-03/criterios-aceite.md](docs/aula-03/criterios-aceite.md) |
+| Relatório comparativo | [docs/aula-03/relatorio-comparativo.md](docs/aula-03/relatorio-comparativo.md) |
+| DAG | [airflow/dags/train_evaluate_dag.py](airflow/dags/train_evaluate_dag.py) |
+
 ---
 
 ## Stack
@@ -134,4 +151,4 @@ Git · Docker · FastAPI · Apache Airflow · MLflow · GitHub Actions · AWS (p
 
 ## Próximos passos
 
-Scoring com modelo Production, treino/avaliação com MLflow, CI/CD e monitoramento.
+Scoring semanal com o alias champion, CI/CD e monitoramento.

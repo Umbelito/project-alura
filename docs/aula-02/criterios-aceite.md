@@ -21,6 +21,7 @@
 
 ## Fora de escopo (próximas aulas)
 
-- Scoring com modelo Production / MLflow Registry
-- Treino, gates de promoção e monitoramento
+- ~~Treino / MLflow Registry~~ → Aula 3 (`docs/aula-03/`)
+- Scoring com modelo champion publicando `customer_segments`
 - Deploy da API com tabela de segmentos
+- Monitoramento
