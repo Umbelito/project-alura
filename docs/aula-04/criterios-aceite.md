@@ -24,5 +24,5 @@
 
 ## Fora de escopo (próximas aulas)
 
-- Scoring semanal em produção com DAG dedicada além do probe de integração
+- ~~Scoring semanal em produção com DAG dedicada~~ → Aula 5 (`docs/aula-05/`)
 - Monitoramento contínuo de drift

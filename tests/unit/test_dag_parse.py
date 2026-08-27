@@ -25,6 +25,8 @@ def test_dag_files_load() -> None:
     assert "customer_feature_table" in dagbag.dags
     assert "train_evaluate_register" in dagbag.dags
     assert "quality_gates_promote" in dagbag.dags
+    assert "ingest_daily" in dagbag.dags
+    assert "batch_score_champion" in dagbag.dags
     train = dagbag.dags["train_evaluate_register"]
     assert train.max_active_runs == 1
     assert "run_experiment" in {t.task_id for t in train.tasks}

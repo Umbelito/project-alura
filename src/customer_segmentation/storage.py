@@ -14,7 +14,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from customer_segmentation.config import data_dir, project_root
+from customer_segmentation.config import data_dir, data_root, project_root
 
 logger = logging.getLogger(__name__)
 
@@ -54,11 +54,41 @@ class DatasetRef:
 
 
 def relative_uri(path: Path, root: Path | None = None) -> str:
-    base = root or project_root()
+    resolved = path.resolve()
+    bases = [root] if root is not None else [project_root(), data_root().parent]
+    for base in bases:
+        try:
+            return str(resolved.relative_to(base.resolve())).replace("\\", "/")
+        except ValueError:
+            continue
     try:
-        return str(path.resolve().relative_to(base.resolve())).replace("\\", "/")
+        return f"data/{resolved.relative_to(data_root().resolve()).as_posix()}"
     except ValueError:
         return str(path).replace("\\", "/")
+
+
+def resolve_data_uri(uri: str | None) -> Path | None:
+    """Resolve URI gravada no pointer (dev local ou DATA_ROOT no Docker)."""
+    if not uri:
+        return None
+    raw = str(uri).replace("\\", "/")
+    candidates: list[Path] = [Path(raw)]
+    if not Path(raw).is_absolute():
+        candidates.append(project_root() / raw)
+        candidates.append(data_root() / raw)
+    if raw.startswith("data/"):
+        candidates.append(data_root() / raw[len("data/") :])
+    parts = Path(raw).parts
+    if "scores" in parts:
+        idx = list(parts).index("scores")
+        candidates.append(data_root().joinpath(*parts[idx:]))
+    for candidate in candidates:
+        try:
+            if candidate.is_file():
+                return candidate
+        except OSError:
+            continue
+    return None
 
 
 def landing_partition_path(dataset: str, year: int, month: int) -> Path:
@@ -112,6 +142,25 @@ def scores_dir(as_of: date) -> Path:
 
 def scores_table_path(as_of: date) -> Path:
     return scores_dir(as_of) / "customer_segments.parquet"
+
+
+def scores_current_pointer_path() -> Path:
+    return data_root() / "scores" / "current.json"
+
+
+def latest_scores_table_path() -> Path | None:
+    """Resolve a partição corrente (pointer) ou a as_of_date mais recente."""
+    pointer = scores_current_pointer_path()
+    if pointer.is_file():
+        payload = json.loads(pointer.read_text(encoding="utf-8"))
+        resolved = resolve_data_uri(payload.get("uri"))
+        if resolved is not None:
+            return resolved
+    scores_root = data_root() / "scores"
+    if not scores_root.is_dir():
+        return None
+    partitions = sorted(scores_root.glob("as_of_date=*/customer_segments.parquet"))
+    return partitions[-1] if partitions else None
 
 
 def write_manifest(directory: Path, payload: dict[str, Any]) -> Path:

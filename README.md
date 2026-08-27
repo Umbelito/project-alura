@@ -16,25 +16,24 @@ Transformar o experimento de Ciência de Dados em um pipeline reprodutível e op
 
 ```
 api/                         # FastAPI — consulta de segmentos
-airflow/dags/                # DAG customer_feature_table (Aula 2)
-configs/                     # Cadências, paths e features
+airflow/dags/                # Ingestão, features, treino, gates, scoring
+configs/                     # Cadências, paths, treino e quality gates
 contracts/                   # Contratos de entrada e saída
 data/
   raw/                       # CSVs Olist originais
   landing/                   # Partições mensais (fonte incremental)
   processed/                 # Parquets limpos / orders_enriched
   features/                  # Features RFM versionadas (v*/as_of_date=*)
-  scores/                    # Tabela customer_segments
-docs/aula-01/                # Documentação da Aula 1
-docs/aula-02/                # Orquestração Airflow + qualidade
-scripts/                     # Particionamento e run local da feature table
+  scores/                    # Histórico customer_segments + current.json
+docs/aula-01/ … docs/aula-05/
+scripts/                     # Execução local (features, treino, gates, scoring)
 src/customer_segmentation/
-  ingestion/                 # Ingestão incremental
-  validation/                # Contratos + quality checks
-  features/                  # Limpeza, join, RFM
+  ingestion/
+  validation/
+  features/
   training/
-  scoring/
-  serving/
+  scoring/                   # Batch com alias champion
+  serving/                   # Lookup da tabela histórica
 tests/
 ```
 
@@ -82,17 +81,24 @@ pytest tests/unit tests/contracts tests/integration -q
 ruff check src tests scripts api
 ```
 
-### Airflow (opcional)
+### Scoring batch + API (Aula 5)
 
 ```bash
-docker compose --profile airflow up -d
-# UI http://localhost:8080 — usuário/senha: admin / admin
+python scripts/run_batch_scoring.py --as-of-date 2018-08-31
+uvicorn api.main:app --reload --port 8000
+# GET http://localhost:8000/health
+# GET http://localhost:8000/segments/{customer_unique_id}
 ```
 
-### API (esqueleto)
+### Stack local (Docker Compose)
+
+Sobe API, MLflow, Postgres, Airflow e o volume `./data`:
 
 ```bash
-uvicorn api.main:app --reload --port 8000
+docker compose up -d
+# API     http://localhost:8000/health
+# MLflow  http://localhost:5000
+# Airflow http://localhost:8080  (admin / admin)
 ```
 
 ### Testes
@@ -105,12 +111,14 @@ pytest tests/unit tests/contracts tests/integration -q
 
 ## Cadências
 
-| Pipeline | Frequência | Cron |
-|---|---|---|
-| Ingestão + validação | Diária | `0 3 * * *` |
-| Features RFM + scoring | Semanal (segunda) | `0 5` / `0 7 * * 1` |
-| Treinamento + promoção | Mensal | `0 4 1 * *` |
-| Monitoramento | A cada 30 min | `*/30 * * * *` |
+| Pipeline | Frequência | Cron | DAG |
+|---|---|---|---|
+| Ingestão | Diária | `0 3 * * *` | `ingest_daily` |
+| Features RFM | Semanal (segunda) | `0 5 * * 1` | `customer_feature_table` |
+| Scoring (champion) | Semanal (segunda) | `0 7 * * 1` | `batch_score_champion` |
+| Treinamento | Mensal | `0 4 1 * *` | `train_evaluate_register` |
+| Quality gates | Mensal | `30 4 1 * *` | `quality_gates_promote` |
+| Monitoramento | A cada 30 min | `*/30 * * * *` | health da API |
 
 Detalhes em [`configs/cadences.yaml`](configs/cadences.yaml) e [`docs/aula-01/cadencias.md`](docs/aula-01/cadencias.md).
 
@@ -157,14 +165,18 @@ Detalhes em [`configs/cadences.yaml`](configs/cadences.yaml) e [`docs/aula-01/ca
 | CI | [.github/workflows/quality-gates.yml](.github/workflows/quality-gates.yml) |
 | DAG | [airflow/dags/quality_gates_dag.py](airflow/dags/quality_gates_dag.py) |
 
+### Aula 5
+
+| Documento | Arquivo |
+|---|---|
+| Scoring batch e API | [docs/aula-05/README.md](docs/aula-05/README.md) |
+| Critérios de aceite | [docs/aula-05/criterios-aceite.md](docs/aula-05/criterios-aceite.md) |
+| DAG scoring | [airflow/dags/batch_score_dag.py](airflow/dags/batch_score_dag.py) |
+| DAG ingestão | [airflow/dags/ingest_daily_dag.py](airflow/dags/ingest_daily_dag.py) |
+| Compose | [docker-compose.yml](docker-compose.yml) |
+
 ---
 
 ## Stack
 
 Git · Docker · FastAPI · Apache Airflow · MLflow · GitHub Actions · AWS (padrão do Projeto 1)
-
----
-
-## Próximos passos
-
-Scoring semanal operacional, CI/CD de deploy e monitoramento de drift.

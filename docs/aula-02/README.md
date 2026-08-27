@@ -85,7 +85,7 @@ O Airflow **não garante** que tarefas consecutivas rodem no mesmo worker. XComs
 ## Como subir o Airflow (local)
 
 ```bash
-docker compose --profile airflow up -d
+docker compose up -d
 # UI: http://localhost:8080  (admin / admin)
 ```
 

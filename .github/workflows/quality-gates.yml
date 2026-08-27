@@ -2,7 +2,7 @@ name: quality-gates
 
 on:
   push:
-    branches: [main, aula2, aula3, aula4]
+    branches: [main, aula2, aula3, aula4, aula5]
   pull_request:
 
 jobs:

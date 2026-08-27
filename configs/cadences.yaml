@@ -26,9 +26,11 @@ feature_engineering:
 scoring:
   schedule: "0 7 * * 1"          # segunda às 07:00 (após features)
   description: >
-    Aplica o modelo Production do registry e publica customer_segments.
+    Pipeline independente do treino. Carrega models:/…@champion,
+    segmenta a base completa e publica customer_segments histórico.
   depends_on: [feature_engineering]
   output_table: customer_segments
+  model_alias: champion
 
 training:
   schedule: "0 4 1 * *"          # dia 1 de cada mês às 04:00

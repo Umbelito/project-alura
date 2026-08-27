@@ -6,7 +6,7 @@ Fonte de verdade: [`configs/cadencias.yaml`](../../configs/cadences.yaml).
 |---|---|---|---|
 | Ingestão + validação | `0 3 * * *` | Diária | Trazer partição do mês corrente e validar contrato |
 | Features RFM | `0 5 * * 1` | Semanal (segunda) | Recalcular R, F, M com janela de 365 dias |
-| Scoring | `0 7 * * 1` | Semanal (segunda) | Publicar `customer_segments` com modelo Production |
+| Scoring | `0 7 * * 1` | Semanal (segunda) | Publicar `customer_segments` com alias **champion** |
 | Treinamento + promoção | `0 4 1 * *` | Mensal | Retreinar, avaliar estabilidade e promover/reverter |
 | Monitoramento | `*/30 * * * *` | 30 min | Heartbeat, freshness, drift de distribuição, API |
 

@@ -20,6 +20,14 @@ EXPECTED = {
         "dag_id": "quality_gates_promote",
         "tasks": ["run_quality_gates"],
     },
+    "ingest_daily_dag.py": {
+        "dag_id": "ingest_daily",
+        "tasks": ["ingest_current_month"],
+    },
+    "batch_score_dag.py": {
+        "dag_id": "batch_score_champion",
+        "tasks": ["load_champion_meta", "score_full_base"],
+    },
 }
 
 
@@ -52,3 +60,15 @@ def test_dags_do_not_pass_dataframes_in_docstring() -> None:
     """Documentação das DAGs reforça XCom só com metadados."""
     text = (DAGS_DIR / "customer_feature_table_dag.py").read_text(encoding="utf-8")
     assert "metadados" in text.lower() or "DatasetRef" in text
+
+
+def test_independent_pipeline_schedules() -> None:
+    ingest = (DAGS_DIR / "ingest_daily_dag.py").read_text(encoding="utf-8")
+    features = (DAGS_DIR / "customer_feature_table_dag.py").read_text(encoding="utf-8")
+    train = (DAGS_DIR / "train_evaluate_dag.py").read_text(encoding="utf-8")
+    score = (DAGS_DIR / "batch_score_dag.py").read_text(encoding="utf-8")
+    assert 'schedule="0 3 * * *"' in ingest
+    assert 'schedule="0 5 * * 1"' in features
+    assert 'schedule="0 4 1 * *"' in train
+    assert 'schedule="0 7 * * 1"' in score
+    assert "@champion" in score or "champion" in score
