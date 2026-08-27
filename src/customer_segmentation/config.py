@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -11,8 +12,16 @@ def project_root() -> Path:
     return ROOT
 
 
+def data_root() -> Path:
+    """Raiz dos dados: DATA_ROOT (Docker) ou <repo>/data."""
+    env = os.environ.get("DATA_ROOT")
+    if env:
+        return Path(env)
+    return ROOT / "data"
+
+
 def data_dir(*parts: str) -> Path:
-    return ROOT / "data" / Path(*parts)
+    return data_root() / Path(*parts)
 
 
 def contracts_dir(*parts: str) -> Path:

@@ -1,4 +1,6 @@
-# Stack local — API, MLflow e Airflow.
+# Stack local Aula 5: API + MLflow + Postgres + Airflow + armazenamento compartilhado (./data).
+# Subir tudo: docker compose up -d
+# Só API + MLflow: docker compose up -d api mlflow
 
 x-airflow-common: &airflow-common
   image: apache/airflow:2.9.3-python3.11
@@ -11,6 +13,8 @@ x-airflow-common: &airflow-common
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
     AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Sao_Paulo
     PYTHONPATH: /opt/airflow/src:/opt/airflow
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    DATA_ROOT: /opt/airflow/data
     _PIP_ADDITIONAL_REQUIREMENTS: pandas pyarrow pyyaml scikit-learn mlflow
   volumes:
     - ./airflow/dags:/opt/airflow/dags
@@ -20,10 +24,12 @@ x-airflow-common: &airflow-common
     - ./contracts:/opt/airflow/contracts
     - ./configs:/opt/airflow/configs
     - ./scripts:/opt/airflow/scripts
+    - ./mlruns:/opt/airflow/mlruns
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     postgres:
       condition: service_healthy
+  networks: [mlops]
 
 services:
   api:
@@ -33,7 +39,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SEGMENTS_PATH=/data/scores/customer_segments.parquet
+      - DATA_ROOT=/data
     volumes:
       - ./data:/data:ro
     healthcheck:
@@ -41,6 +47,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    networks: [mlops]
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.11.3
@@ -54,9 +61,10 @@ services:
       - "5000:5000"
     volumes:
       - ./mlflow:/mlflow
+      - ./mlruns:/mlruns
+    networks: [mlops]
 
   postgres:
-    profiles: ["airflow"]
     image: postgres:15
     environment:
       POSTGRES_USER: airflow
@@ -69,10 +77,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks: [mlops]
 
   airflow-init:
     <<: *airflow-common
-    profiles: ["airflow"]
     entrypoint: /bin/bash
     command:
       - -c
@@ -89,10 +97,11 @@ services:
       <<: *airflow-common-env
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
+    restart: on-failure
+    networks: [mlops]
 
   airflow-webserver:
     <<: *airflow-common
-    profiles: ["airflow"]
     command: webserver
     ports:
       - "8080:8080"
@@ -104,14 +113,23 @@ services:
     depends_on:
       airflow-init:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    networks: [mlops]
 
   airflow-scheduler:
     <<: *airflow-common
-    profiles: ["airflow"]
     command: scheduler
     depends_on:
       airflow-init:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    networks: [mlops]
+
+networks:
+  mlops:
+    driver: bridge
 
 volumes:
   postgres-data:

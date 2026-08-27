@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -12,6 +14,7 @@ import pandas as pd
 from customer_segmentation.features.pipeline import parse_as_of_date
 from customer_segmentation.storage import (
     _utc_now_iso,
+    scores_current_pointer_path,
     scores_dir,
     scores_table_path,
     write_manifest,
@@ -101,3 +104,16 @@ def persist_segments(scored: pd.DataFrame, as_of: str | date) -> dict[str, Any]:
         },
     )
     return ref.to_dict()
+
+
+def publish_current_pointer(ref: dict[str, Any]) -> Path:
+    """Atualiza o ponteiro lido pela API (última segmentação vigente)."""
+    path = scores_current_pointer_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        **ref,
+        "published_at": _utc_now_iso(),
+    }
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    logger.info("Ponteiro current.json atualizado as_of=%s uri=%s", ref.get("as_of_date"), ref.get("uri"))
+    return path

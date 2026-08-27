@@ -21,4 +21,5 @@ airflow:
 api:
   host: 0.0.0.0
   port: 8000
-  segments_table: data/scores/customer_segments.parquet
+  segments_pointer: data/scores/current.json
+  segments_table: data/scores/as_of_date=*/customer_segments.parquet
