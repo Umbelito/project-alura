@@ -1,4 +1,4 @@
-# Stack local — API, MLflow e Airflow (Aula 2).
+# Stack local — API, MLflow e Airflow.
 
 x-airflow-common: &airflow-common
   image: apache/airflow:2.9.3-python3.11
@@ -11,7 +11,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
     AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Sao_Paulo
     PYTHONPATH: /opt/airflow/src:/opt/airflow
-    _PIP_ADDITIONAL_REQUIREMENTS: pandas pyarrow pyyaml
+    _PIP_ADDITIONAL_REQUIREMENTS: pandas pyarrow pyyaml scikit-learn mlflow
   volumes:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs

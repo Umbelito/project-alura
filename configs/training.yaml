@@ -1,0 +1,58 @@
+# Experimentação e seleção de modelo (Aula 3)
+# Algoritmos com predict() para scoring semanal — contrato operacional.
+
+random_state: 42
+
+model_name: customer_segmentation_kmeans
+experiment_name: customer_segmentation_rfm
+
+# Features numéricas usadas no clustering (contrato de entrada do modelo)
+feature_columns:
+  - recency_days
+  - frequency
+  - monetary
+  - avg_ticket
+  - avg_items_per_order
+  - customer_age_days
+
+# Colunas com assimetria — log1p antes do scaler
+log_columns:
+  - recency_days
+  - frequency
+  - monetary
+  - avg_ticket
+
+# Grade de busca (n_clusters mapeia para n_components no GMM)
+search:
+  kmeans:
+    n_clusters: [4, 5, 6]
+  minibatch_kmeans:
+    n_clusters: [4, 5, 6]
+    batch_size: [1024]
+  gaussian_mixture:
+    n_clusters: [4, 5, 6]
+    covariance_type: [diag]
+
+# Grade reduzida para testes / iteração rápida
+search_quick:
+  kmeans:
+    n_clusters: [3, 4]
+
+stability:
+  n_subsamples: 2
+  sample_frac: 0.80
+  min_overlap: 50
+
+gates:
+  silhouette_min: 0.20
+  segment_count_between: [3, 10]
+  ari_subsample_min: 0.50
+  no_empty_segment: true
+  min_cluster_size: 20          # cluster acionável para campanha; contrato de scoring alerta em 50
+  min_cluster_share: 0.002      # 0,2% — RFM Olist tem poucos recompradores (champions raros)
+
+# Pesos do score composto (só entra quem passou nos gates)
+score_weights:
+  silhouette: 0.45
+  davies_bouldin_inv: 0.20
+  stability_ari: 0.35

@@ -33,6 +33,8 @@ data/features/**
 !data/features/.gitkeep
 data/scores/**
 !data/scores/.gitkeep
+data/models/**
+!data/models/.gitkeep
 *.parquet
 *.pkl
 *.joblib
