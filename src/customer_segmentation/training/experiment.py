@@ -26,7 +26,6 @@ from customer_segmentation.training.profiles import build_segment_profiles
 from customer_segmentation.training.selection import select_candidate
 from customer_segmentation.training.stability import period_stability_ari, subsample_stability_ari
 from customer_segmentation.training.tracking import (
-    CHAMPION_ALIAS,
     log_dataset_ref,
     log_trial,
     register_sklearn_model,
@@ -205,7 +204,6 @@ def run_training_experiment(
     results: list[dict[str, Any]] = []
     fitted_winner_pipeline = None
     winner_profiles = None
-    winner_spec = None
 
     with mlflow.start_run(run_name=f"experiment_{as_of.isoformat()}") as parent:
         parent_run_id = parent.info.run_id

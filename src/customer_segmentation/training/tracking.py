@@ -121,7 +121,7 @@ def register_sklearn_model(
     client = MlflowClient()
     _set_alias(client, model_name, CANDIDATE_ALIAS, version)
     aliases = [CANDIDATE_ALIAS]
-    if set_champion or not _alias_exists(client, model_name, CHAMPION_ALIAS):
+    if set_champion:
         _set_alias(client, model_name, CHAMPION_ALIAS, version)
         aliases.append(CHAMPION_ALIAS)
 

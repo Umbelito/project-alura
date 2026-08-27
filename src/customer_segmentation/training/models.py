@@ -66,12 +66,12 @@ def iter_search_space(search: dict[str, dict[str, list]], random_state: int = 42
         values = [grid[k] if isinstance(grid[k], list) else [grid[k]] for k in keys]
         for combo in itertools.product(*values):
             params = dict(zip(keys, combo, strict=True))
-            n_clusters = params.get("n_clusters", params.get("n_components"))
+            n_clusters = int(params.get("n_clusters") or params.get("n_components") or 5)
             extra = {k: v for k, v in params.items() if k not in {"n_clusters", "n_components"}}
             label_bits = [algorithm, f"k{n_clusters}"] + [f"{k}={v}" for k, v in extra.items()]
             yield {
                 "algorithm": algorithm,
-                "n_clusters": int(n_clusters),
+                "n_clusters": n_clusters,
                 "params": params,
                 "run_name": "_".join(str(b) for b in label_bits),
                 "random_state": random_state,
