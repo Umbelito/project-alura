@@ -1,0 +1,93 @@
+name: customer_segments
+version: "1.0.0"
+description: >
+  Tabela final de segmentação de clientes para campanhas de marketing.
+  Uma linha por customer_unique_id por execução de scoring (as_of_date).
+  Consumida pela API de consulta e por ferramentas de CRM/campanha.
+owner: ml-platform
+partitioning:
+  type: snapshot_by_score_date
+  columns: [as_of_date]
+primary_key: [customer_unique_id, as_of_date]
+columns:
+  - name: customer_unique_id
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: as_of_date
+    type: date
+    nullable: false
+    description: Data de referência do scoring (fim da janela RFM).
+  - name: recency_days
+    type: integer
+    nullable: false
+    checks: [non_negative]
+    description: Dias desde a última compra até as_of_date.
+  - name: frequency
+    type: integer
+    nullable: false
+    checks: [positive]
+    description: Número de pedidos entregues na janela de observação.
+  - name: monetary
+    type: float
+    nullable: false
+    checks: [non_negative]
+    description: Soma de price dos itens na janela de observação.
+  - name: r_score
+    type: integer
+    nullable: true
+    description: Quintil/score RFM de Recency (1-5), se aplicável.
+  - name: f_score
+    type: integer
+    nullable: true
+  - name: m_score
+    type: integer
+    nullable: true
+  - name: segment_id
+    type: integer
+    nullable: false
+    checks: [non_negative]
+    description: Identificador do cluster/segmento atribuído pelo modelo.
+  - name: segment_label
+    type: string
+    nullable: false
+    description: >
+      Rótulo de negócio legível (ex. champions, loyal, at_risk,
+      hibernating, new_customers). Definido no mapeamento pós-cluster.
+  - name: model_name
+    type: string
+    nullable: false
+  - name: model_version
+    type: string
+    nullable: false
+    description: Versão promovida no Model Registry (MLflow).
+  - name: feature_set_version
+    type: string
+    nullable: false
+  - name: scored_at
+    type: timestamp
+    nullable: false
+quality_checks:
+  - name: one_row_per_customer
+    expression: "count(*) = count(distinct customer_unique_id)"
+    severity: error
+    scope: per as_of_date
+  - name: segment_coverage
+    expression: "count(*) FILTER (WHERE segment_label IS NOT NULL) / count(*) = 1"
+    severity: error
+  - name: min_customers
+    expression: "count(*) >= 1000"
+    severity: warn
+  - name: segment_cardinality
+    expression: "count(distinct segment_id) BETWEEN 3 AND 10"
+    severity: error
+  - name: no_empty_segment
+    expression: "min(count(*)) OVER (PARTITION BY segment_id) >= 50"
+    severity: warn
+sla:
+  freshness_hours: 48
+  availability: "API GET /segments/{customer_unique_id} p95 < 300ms"
+consumers:
+  - serving_api
+  - marketing_campaigns
+  - crm_export

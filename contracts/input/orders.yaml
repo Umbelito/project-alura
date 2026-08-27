@@ -1,0 +1,71 @@
+name: orders
+version: "1.0.0"
+description: >
+  Pedidos do e-commerce Olist. Fonte incremental particionada por
+  order_purchase_timestamp (year/month).
+owner: data-platform
+partitioning:
+  type: monthly
+  columns: [year, month]
+  source_column: order_purchase_timestamp
+primary_key: [order_id]
+foreign_keys:
+  - columns: [customer_id]
+    references: customers.customer_id
+columns:
+  - name: order_id
+    type: string
+    nullable: false
+    checks: [not_null, unique]
+  - name: customer_id
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: order_status
+    type: string
+    nullable: false
+    allowed_values:
+      - delivered
+      - shipped
+      - invoiced
+      - processing
+      - created
+      - approved
+      - canceled
+      - unavailable
+  - name: order_purchase_timestamp
+    type: timestamp
+    nullable: false
+    checks: [not_null]
+  - name: order_approved_at
+    type: timestamp
+    nullable: true
+  - name: order_delivered_carrier_date
+    type: timestamp
+    nullable: true
+  - name: order_delivered_customer_date
+    type: timestamp
+    nullable: true
+  - name: order_estimated_delivery_date
+    type: timestamp
+    nullable: true
+quality_checks:
+  - name: row_count_min
+    expression: "count(*) >= 1"
+    severity: error
+  - name: delivered_ratio
+    expression: "avg(order_status = 'delivered') >= 0.80"
+    severity: warn
+    notes: Dataset Olist histórico ~97% delivered; alerta se cair abaixo de 80%.
+  - name: purchase_not_in_future
+    expression: "max(order_purchase_timestamp) <= current_timestamp"
+    severity: error
+  - name: approved_after_purchase
+    expression: >
+      sum(order_approved_at < order_purchase_timestamp) = 0
+      OR order_approved_at IS NULL
+    severity: warn
+consumers:
+  - feature_store_rfm
+  - training_pipeline
+  - scoring_pipeline

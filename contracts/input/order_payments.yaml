@@ -1,0 +1,52 @@
+name: order_payments
+version: "1.0.0"
+description: >
+  Pagamentos associados a pedidos. Particionados pelo mês de compra
+  do pedido pai. Complementam Monetary e permitem features de meio de pagamento.
+owner: data-platform
+partitioning:
+  type: monthly
+  columns: [year, month]
+  inherited_from: orders.order_purchase_timestamp
+primary_key: [order_id, payment_sequential]
+foreign_keys:
+  - columns: [order_id]
+    references: orders.order_id
+columns:
+  - name: order_id
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: payment_sequential
+    type: integer
+    nullable: false
+    checks: [not_null, positive]
+  - name: payment_type
+    type: string
+    nullable: false
+    allowed_values:
+      - credit_card
+      - boleto
+      - voucher
+      - debit_card
+      - not_defined
+  - name: payment_installments
+    type: integer
+    nullable: false
+    checks: [non_negative]
+  - name: payment_value
+    type: float
+    nullable: false
+    checks: [not_null, non_negative]
+quality_checks:
+  - name: row_count_min
+    expression: "count(*) >= 1"
+    severity: error
+  - name: payment_value_positive_ratio
+    expression: "avg(payment_value > 0) >= 0.99"
+    severity: error
+  - name: orphan_orders
+    expression: "count(*) FILTER (WHERE order_id NOT IN orders) = 0"
+    severity: error
+consumers:
+  - feature_store_rfm

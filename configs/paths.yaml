@@ -1,0 +1,24 @@
+# Caminhos locais (dev). Em produção, prefixos apontam para S3/MinIO.
+data:
+  raw: data/raw
+  landing: data/landing
+  processed: data/processed
+  features: data/features
+  scores: data/scores
+
+contracts:
+  input: contracts/input
+  output: contracts/output
+
+mlflow:
+  tracking_uri: http://localhost:5000
+  experiment_name: customer_segmentation_rfm
+  registry_model_name: customer_segmentation_kmeans
+
+airflow:
+  dags_folder: airflow/dags
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  segments_table: data/scores/customer_segments.parquet

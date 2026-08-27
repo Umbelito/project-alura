@@ -1,0 +1,45 @@
+name: customers
+version: "1.0.0"
+description: >
+  Dimensão de clientes Olist. Carregada como snapshot completo
+  (não particionada por tempo). A entidade de negócio para segmentação
+  é customer_unique_id.
+owner: data-platform
+partitioning:
+  type: snapshot
+  columns: [snapshot]
+primary_key: [customer_id]
+columns:
+  - name: customer_id
+    type: string
+    nullable: false
+    checks: [not_null, unique]
+  - name: customer_unique_id
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: customer_zip_code_prefix
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: customer_city
+    type: string
+    nullable: false
+  - name: customer_state
+    type: string
+    nullable: false
+    checks:
+      - name: length_eq_2
+        expression: "length(customer_state) = 2"
+quality_checks:
+  - name: row_count_min
+    expression: "count(*) >= 1"
+    severity: error
+  - name: unique_id_coverage
+    expression: "count(distinct customer_unique_id) / count(*) >= 0.90"
+    severity: warn
+    notes: Um unique_id pode mapear vários customer_id (recompras).
+consumers:
+  - feature_store_rfm
+  - scoring_pipeline
+  - serving_api

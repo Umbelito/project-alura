@@ -1,0 +1,50 @@
+# Cadências operacionais do sistema de segmentação RFM
+#
+# Ingestão: diária (partições mensais acumulam eventos do mês corrente)
+# Features / Scoring: semanal (segmentação fresca para campanhas)
+# Treinamento: mensal (retreino + avaliação de estabilidade)
+# Monitoramento: contínuo via healthchecks e métricas de data/model drift
+
+timezone: America/Sao_Paulo
+
+ingestion:
+  schedule: "0 3 * * *"          # diário às 03:00
+  description: >
+    Ingere a partição do mês corrente (e backfill sob demanda).
+    Fonte simulada: data/landing/{orders,order_items,order_payments}/year=*/month=*
+  catchup: true
+  max_active_runs: 1
+
+feature_engineering:
+  schedule: "0 5 * * 1"          # segunda às 05:00
+  description: >
+    Recalcula features RFM com janela móvel de 365 dias até as_of_date
+    (domingo anterior, 23:59:59).
+  observation_window_days: 365
+  order_status_filter: [delivered]
+
+scoring:
+  schedule: "0 7 * * 1"          # segunda às 07:00 (após features)
+  description: >
+    Aplica o modelo Production do registry e publica customer_segments.
+  depends_on: [feature_engineering]
+  output_table: customer_segments
+
+training:
+  schedule: "0 4 1 * *"          # dia 1 de cada mês às 04:00
+  description: >
+    Retreina clustering (K-Means / variante validada), registra no MLflow,
+    avalia estabilidade vs. versão Production e promove somente se gates passarem.
+  promotion_gates:
+    - silhouette_min: 0.20
+    - segment_count_between: [3, 10]
+    - ari_vs_previous_min: 0.50   # Adjusted Rand Index de estabilidade
+    - no_empty_segment: true
+
+monitoring:
+  schedule: "*/30 * * * *"       # a cada 30 min
+  checks:
+    - pipeline_heartbeat
+    - data_freshness
+    - segment_distribution_drift
+    - api_availability

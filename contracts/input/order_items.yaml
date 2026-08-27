@@ -1,0 +1,52 @@
+name: order_items
+version: "1.0.0"
+description: >
+  Itens de pedido. Particionados pelo mês de compra do pedido pai.
+  Usados para Monetary (soma de price) e Frequency (contagem de pedidos).
+owner: data-platform
+partitioning:
+  type: monthly
+  columns: [year, month]
+  inherited_from: orders.order_purchase_timestamp
+primary_key: [order_id, order_item_id]
+foreign_keys:
+  - columns: [order_id]
+    references: orders.order_id
+columns:
+  - name: order_id
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: order_item_id
+    type: integer
+    nullable: false
+    checks: [not_null, positive]
+  - name: product_id
+    type: string
+    nullable: false
+  - name: seller_id
+    type: string
+    nullable: false
+  - name: shipping_limit_date
+    type: timestamp
+    nullable: true
+  - name: price
+    type: float
+    nullable: false
+    checks: [not_null, non_negative]
+  - name: freight_value
+    type: float
+    nullable: false
+    checks: [not_null, non_negative]
+quality_checks:
+  - name: row_count_min
+    expression: "count(*) >= 1"
+    severity: error
+  - name: price_positive_ratio
+    expression: "avg(price > 0) >= 0.99"
+    severity: error
+  - name: orphan_orders
+    expression: "count(*) FILTER (WHERE order_id NOT IN orders) = 0"
+    severity: error
+consumers:
+  - feature_store_rfm

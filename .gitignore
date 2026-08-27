@@ -1,0 +1,48 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Dados volumosos (locais). Estrutura versionada via README/.gitkeep.
+data/raw/*.csv
+data/landing/**
+!data/landing/.gitkeep
+data/processed/**
+!data/processed/.gitkeep
+data/features/**
+!data/features/.gitkeep
+data/scores/**
+!data/scores/.gitkeep
+*.parquet
+*.pkl
+*.joblib
+
+# MLflow / Airflow locais
+mlruns/
+mlartifacts/
+airflow/logs/
+airflow/airflow.db
+airflow.cfg
+
+# Docker volumes
+postgres-data/

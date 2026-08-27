@@ -1,0 +1,32 @@
+# Stack local reutilizando o padrão do Projeto 1 (API + serviços de suporte).
+# Airflow e MLflow completos entram nas aulas seguintes; aqui ficam os stubs.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - SEGMENTS_PATH=/data/scores/customer_segments.parquet
+    volumes:
+      - ./data:/data:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.3
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow:/mlflow
