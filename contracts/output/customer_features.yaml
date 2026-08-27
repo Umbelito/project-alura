@@ -1,0 +1,107 @@
+name: customer_features
+version: "1.0.0"
+description: >
+  Feature table RFM + variáveis comportamentais por customer_unique_id.
+  Versionada em data/features/v{feature_set_version}/as_of_date=YYYY-MM-DD/.
+  Consumida pelo scoring semanal e pelo treinamento mensal.
+owner: ml-platform
+partitioning:
+  type: versioned_snapshot
+  columns: [feature_set_version, as_of_date]
+primary_key: [customer_unique_id, as_of_date]
+columns:
+  - name: customer_unique_id
+    type: string
+    nullable: false
+    checks: [not_null]
+  - name: as_of_date
+    type: date
+    nullable: false
+    description: Fim da janela de observação RFM.
+  - name: recency_days
+    type: integer
+    nullable: false
+    checks: [non_negative]
+    description: Dias desde a última compra delivered até as_of_date.
+  - name: frequency
+    type: integer
+    nullable: false
+    checks: [positive]
+    description: Contagem de pedidos delivered na janela.
+  - name: monetary
+    type: float
+    nullable: false
+    checks: [non_negative]
+    description: Soma de price dos itens na janela.
+  - name: r_score
+    type: integer
+    nullable: false
+    description: Quintil de Recency (1-5; 5 = mais recente).
+  - name: f_score
+    type: integer
+    nullable: false
+  - name: m_score
+    type: integer
+    nullable: false
+  - name: rfm_score
+    type: string
+    nullable: false
+    description: Concatenação R||F||M (ex. "545").
+  - name: avg_ticket
+    type: float
+    nullable: false
+  - name: avg_items_per_order
+    type: float
+    nullable: false
+  - name: avg_freight
+    type: float
+    nullable: true
+  - name: avg_installments
+    type: float
+    nullable: true
+  - name: preferred_payment_type
+    type: string
+    nullable: true
+  - name: customer_state
+    type: string
+    nullable: true
+  - name: customer_age_days
+    type: integer
+    nullable: false
+    description: Dias entre primeira e última compra na janela.
+  - name: avg_days_between_orders
+    type: float
+    nullable: true
+  - name: first_purchase
+    type: timestamp
+    nullable: false
+  - name: last_purchase
+    type: timestamp
+    nullable: false
+  - name: feature_set_version
+    type: string
+    nullable: false
+  - name: built_at
+    type: timestamp
+    nullable: false
+quality_checks:
+  - name: one_row_per_customer
+    expression: "count(*) = count(distinct customer_unique_id)"
+    severity: error
+    scope: per as_of_date
+  - name: frequency_positive
+    expression: "min(frequency) >= 1"
+    severity: error
+  - name: recency_non_negative
+    expression: "min(recency_days) >= 0"
+    severity: error
+  - name: monetary_non_negative
+    expression: "min(monetary) >= 0"
+    severity: error
+  - name: min_customers
+    expression: "count(*) >= 100"
+    severity: warn
+consumers:
+  - scoring_pipeline
+  - training_pipeline
+  - feature_store_rfm

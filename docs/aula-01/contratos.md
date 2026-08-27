@@ -17,6 +17,7 @@ Cada contrato define: schema, PK/FK, particionamento, `allowed_values`, checks d
 
 | Contrato | Arquivo |
 |---|---|
+| customer_features | [`contracts/output/customer_features.yaml`](../../contracts/output/customer_features.yaml) (Aula 2) |
 | customer_segments | [`contracts/output/customer_segments.yaml`](../../contracts/output/customer_segments.yaml) |
 
 Campos essenciais da tabela final:

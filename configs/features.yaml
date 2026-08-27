@@ -1,0 +1,10 @@
+# Parâmetros da feature table RFM (Aula 2)
+feature_set_version: "1.0.0"
+observation_window_days: 365
+order_status_filter:
+  - delivered
+timezone: America/Sao_Paulo
+
+# Layout versionado
+# data/features/v{feature_set_version}/as_of_date={YYYY-MM-DD}/customer_features.parquet
+# data/processed/orders_enriched/as_of_date={YYYY-MM-DD}/orders_enriched.parquet

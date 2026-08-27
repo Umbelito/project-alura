@@ -16,21 +16,22 @@ Transformar o experimento de Ciência de Dados em um pipeline reprodutível e op
 
 ```
 api/                         # FastAPI — consulta de segmentos
-airflow/dags/                # DAGs (aulas seguintes)
-configs/                     # Cadências e paths
+airflow/dags/                # DAG customer_feature_table (Aula 2)
+configs/                     # Cadências, paths e features
 contracts/                   # Contratos de entrada e saída
 data/
   raw/                       # CSVs Olist originais
   landing/                   # Partições mensais (fonte incremental)
-  processed/                 # Dados limpos
-  features/                  # Features RFM versionadas
+  processed/                 # Parquets limpos / orders_enriched
+  features/                  # Features RFM versionadas (v*/as_of_date=*)
   scores/                    # Tabela customer_segments
 docs/aula-01/                # Documentação da Aula 1
-scripts/                     # Utilitários (ex.: particionamento)
+docs/aula-02/                # Orquestração Airflow + qualidade
+scripts/                     # Particionamento e run local da feature table
 src/customer_segmentation/
-  ingestion/
-  validation/
-  features/
+  ingestion/                 # Ingestão incremental
+  validation/                # Contratos + quality checks
+  features/                  # Limpeza, join, RFM
   training/
   scoring/
   serving/
@@ -59,13 +60,28 @@ Coloque os CSVs Olist em `data/raw/` (veja `data/raw/README.md`) e gere a fonte 
 python scripts/partition_incremental_source.py
 ```
 
-Suba a API (esqueleto):
+### Feature table (Aula 2) — sem Airflow
+
+```bash
+python scripts/run_feature_table.py --as-of-date 2018-08-31 -v
+```
+
+Saída versionada em `data/features/v1.0.0/as_of_date=2018-08-31/`.
+
+### Airflow (opcional)
+
+```bash
+docker compose --profile airflow up -d
+# UI http://localhost:8080 — usuário/senha: admin / admin
+```
+
+### API (esqueleto)
 
 ```bash
 uvicorn api.main:app --reload --port 8000
 ```
 
-Testes:
+### Testes
 
 ```bash
 pytest tests/unit tests/contracts -q
@@ -86,7 +102,9 @@ Detalhes em [`configs/cadences.yaml`](configs/cadences.yaml) e [`docs/aula-01/ca
 
 ---
 
-## Documentação — Aula 1
+## Documentação
+
+### Aula 1
 
 | Documento | Arquivo |
 |---|---|
@@ -96,6 +114,15 @@ Detalhes em [`configs/cadences.yaml`](configs/cadences.yaml) e [`docs/aula-01/ca
 | Contratos de dados | [docs/aula-01/contratos.md](docs/aula-01/contratos.md) · pasta [`contracts/`](contracts/) |
 | Cadências | [docs/aula-01/cadencias.md](docs/aula-01/cadencias.md) |
 | Critérios de aceite | [docs/aula-01/criterios-aceite.md](docs/aula-01/criterios-aceite.md) |
+
+### Aula 2
+
+| Documento | Arquivo |
+|---|---|
+| Orquestração, qualidade e feature table | [docs/aula-02/README.md](docs/aula-02/README.md) |
+| Critérios de aceite | [docs/aula-02/criterios-aceite.md](docs/aula-02/criterios-aceite.md) |
+| DAG | [airflow/dags/customer_feature_table_dag.py](airflow/dags/customer_feature_table_dag.py) |
+| Contrato features | [contracts/output/customer_features.yaml](contracts/output/customer_features.yaml) |
 
 ---
 
@@ -107,4 +134,4 @@ Git · Docker · FastAPI · Apache Airflow · MLflow · GitHub Actions · AWS (p
 
 ## Próximos passos
 
-DAGs Airflow, checks de qualidade executáveis, feature store RFM, treino/avaliação com MLflow, CI/CD e monitoramento.
+Scoring com modelo Production, treino/avaliação com MLflow, CI/CD e monitoramento.
