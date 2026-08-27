@@ -1,16 +1,21 @@
-# Runtime — Aula 1 (esqueleto). Expande nas próximas aulas.
+# Runtime — Aula 2
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
 pyyaml>=6.0.1
 pydantic>=2.6.0
 
-# Pipeline / ML (próximas aulas — já listados para o ambiente do curso)
+# Pipeline / features
 pandas>=2.1.0
 numpy>=1.26.0
+pyarrow>=15.0.0
+
+# ML / tracking (aulas seguintes — já listados)
 scikit-learn>=1.4.0
 mlflow>=2.10.0
 great-expectations>=0.18.0
-pyarrow>=15.0.0
+
+# Orquestração (opcional no venv local; Compose usa imagem oficial)
+# apache-airflow==2.9.3
 
 # Testes / qualidade
 pytest>=8.0.0

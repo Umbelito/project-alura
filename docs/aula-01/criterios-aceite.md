@@ -21,8 +21,7 @@
 
 ## Fora de escopo (próximas aulas)
 
-- DAGs Airflow completas
-- Implementação Great Expectations / checks executáveis
+- ~~DAGs Airflow / feature table / quality checks~~ → Aula 2 (`docs/aula-02/`)
 - Treino K-Means + MLflow real
 - Scoring e publicação Parquet/Delta
 - CI/CD completo e monitoramento em produção
