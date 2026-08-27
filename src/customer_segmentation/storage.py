@@ -106,6 +106,14 @@ def features_table_path(version: str, as_of: date) -> Path:
     return features_dir(version, as_of) / "customer_features.parquet"
 
 
+def scores_dir(as_of: date) -> Path:
+    return data_dir("scores", f"as_of_date={as_of.isoformat()}")
+
+
+def scores_table_path(as_of: date) -> Path:
+    return scores_dir(as_of) / "customer_segments.parquet"
+
+
 def write_manifest(directory: Path, payload: dict[str, Any]) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / MANIFEST_NAME

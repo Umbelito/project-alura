@@ -1,0 +1,25 @@
+# Política de aprovação/rejeição de modelos (Aula 4).
+# Qualquer gate blocking=true impede promoção do alias champion.
+
+decision_approved: approved
+decision_rejected: rejected
+
+blocking_gates:
+  - data_failure
+  - metric_regression
+  - unstable_or_empty_clusters
+  - signature_incompatible
+  - integration_failure
+
+thresholds:
+  silhouette_min: 0.20
+  silhouette_max_drop_vs_champion: 0.05
+  davies_bouldin_max_increase_vs_champion: 0.40
+  ari_subsample_min: 0.50
+  min_cluster_size: 20
+  min_cluster_share: 0.002
+  smoke_min_rows: 5
+  n_clusters_between: [3, 10]
+
+# Tags gravadas na versão do Model Registry e no run MLflow
+tag_prefix: quality_gate_

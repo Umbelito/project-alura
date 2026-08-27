@@ -26,6 +26,6 @@
 
 ## Fora de escopo (próximas aulas)
 
-- Scoring semanal publicando `customer_segments`
-- Gates de promoção contínua vs. champion em produção (além do alias)
+- ~~Quality gates de promoção / suíte CI~~ → Aula 4 (`docs/aula-04/`)
+- Scoring semanal em produção com DAG dedicada
 - Monitoramento de drift

@@ -9,7 +9,6 @@ from typing import Any
 import pandas as pd
 
 from customer_segmentation.storage import (
-    DatasetRef,
     landing_customers_path,
     landing_partition_path,
     processed_customers_path,
