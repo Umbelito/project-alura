@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import numpy as np
 
 from customer_segmentation.config import load_yaml, project_root
 from customer_segmentation.storage import _utc_now_iso
@@ -107,6 +108,10 @@ def register_sklearn_model(
         signature=signature,
         input_example=input_example,
         registered_model_name=model_name,
+        skops_trusted_types=[
+        "customer_segmentation.training.preprocess.log1p_nonneg",
+        "numpy.dtype",
+    ],
     )
     if extra_artifacts:
         for name, payload in extra_artifacts.items():
