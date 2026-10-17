@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.base import clone
 
 from customer_segmentation.features.pipeline import parse_as_of_date
-from customer_segmentation.scoring.assign import assign_segments, persist_segments
+# from customer_segmentation.scoring.assign import assign_segments, persist_segments
 from customer_segmentation.storage import scores_table_path
 from customer_segmentation.training.experiment import load_features, load_training_config
 from customer_segmentation.training.metrics import clustering_metrics
@@ -122,6 +122,7 @@ def run_quality_gates(
 ) -> dict[str, Any]:
     """Avalia o candidato e promove champion somente se a política aprovar."""
     import mlflow
+    from customer_segmentation.scoring.assign import assign_segments, persist_segments
 
     as_of = parse_as_of_date(as_of_date)
     qcfg = load_quality_gate_config()
